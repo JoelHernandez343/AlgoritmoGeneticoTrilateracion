@@ -17,25 +17,71 @@ namespace geneticos2.Classes
             get => m; 
         }
 
+        public override string ToString()
+        {
+            return "a: " + A + " b " + B + "  m " + M;
+        }
+
 
         // Generar limites
         public static Limit[] generate(Restriction[] restrictions, int n)
         {
-            double ax = restrictions[0].Xmin;
-            double bx = restrictions[0].Xmax;
-            for (int i = 1; i < restrictions.Length; ++i){
-                if (ax > restrictions[i].Xmin)
-                    ax = restrictions[i].Xmin;
-                if (bx < restrictions[i].Xmax)
-                    bx = restrictions[i].Xmax;
+            int i;
+
+            double ax = 0;
+            double bx = 0;
+            
+            for (i = 0; i < restrictions.Length; ++i){
+                if (Double.IsNaN(restrictions[i].X))
+                    continue;
+
+                //ax = restrictions[i].X;
+                bx = restrictions[i].X;
+
+                break;
+
             }
-            double ay = restrictions[0].Ymin;
-            double by = restrictions[0].Ymax;
-            for (int i = 1; i < restrictions.Length; ++i){
-                if (ay > restrictions[i].Ymin)
-                    ay = restrictions[i].Ymin;
-                if (by < restrictions[i].Ymax)
-                    by = restrictions[i].Ymax;
+
+            for (int j = i + 1; j < restrictions.Length; ++j)
+            {
+                if (Double.IsNaN(restrictions[j].X))
+                    continue;
+
+                double val = restrictions[j].X;
+
+                //if (val < ax)
+                //    ax = val;
+                if (val > bx)
+                    bx = val;
+            }
+
+
+            double ay = 0;
+            double by = 0;
+
+            for (i = 0; i < restrictions.Length; ++i)
+            {
+                if (Double.IsNaN(restrictions[i].Y))
+                    continue;
+
+                //ay = restrictions[i].Y;
+                by = restrictions[i].Y;
+
+                break;
+
+            }
+
+            for (int j = i + 1; j < restrictions.Length; ++j)
+            {
+                if (Double.IsNaN(restrictions[j].Y))
+                    continue;
+
+                double val = restrictions[j].Y;
+
+                //if (val < ay)
+                //    ay = val;
+                if (val > by)
+                    by = val;
             }
 
             int mx = Genetics.getMj(ax, bx, n);

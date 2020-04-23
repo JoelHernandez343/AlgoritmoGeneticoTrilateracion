@@ -9,20 +9,16 @@ namespace geneticos2.Classes
     class Restriction
     {
         public Func<double, double, bool> condition;
-        public double Xmax { get; }
-        public double Ymax { get; }
-        public double Xmin { get; }
-        public double Ymin { get; }
+        public double X { get; }
+        public double Y { get; }
 
         public Restriction(Circle circle, double error)
         {
             condition = createCircleRestriction(circle, error);
 
-            Xmax = Math.Sqrt(error + square(circle.R)) + circle.X;
-            Ymax = Math.Sqrt(error + square(circle.R)) + circle.Y;
+            X = Math.Sqrt(error + square(circle.R) - square(circle.Y)) + circle.X; // Retornara NaN si hay raiz negativa
+            Y = Math.Sqrt(error + square(circle.R) - square(circle.X)) + circle.Y; // Retornara NaN si hay raiz negativa
 
-            Xmin = -Math.Sqrt(error + square(circle.R)) + circle.X;
-            Ymin = -Math.Sqrt(error + square(circle.R)) + circle.Y;
         }
 
         // Cosas estaticas
@@ -37,7 +33,9 @@ namespace geneticos2.Classes
                 Array.Copy(circles, c, circles.Length);
 
                 for (int i = 0; i < c.Length; ++i)
+                {
                     result += square(square(x - c[i].X) + square(y - c[i].Y) - square(c[i].R));
+                }
 
                 return result;
             };
@@ -49,20 +47,25 @@ namespace geneticos2.Classes
         static Func<double, double, bool> createCircleRestriction(Circle circle, double error)
         {
             return (double x, double y) => {
-                // Console.WriteLine(x + " " + y + " - " + (square(x - circle.X) + square(y - circle.Y) - square(circle.R)) + " e: " + error);
+                //Console.WriteLine(x + " " + y + " - " + (square(x - circle.X) + square(y - circle.Y) - square(circle.R)) + " e: " + error);
                 return square(x - circle.X) + square(y - circle.Y) - square(circle.R) <= error;
             };
         }
 
-        public static double getAbsoluteError(double relativeError, int numOfRestrictions) => Math.Sqrt(z(0, 0)) * relativeError / numOfRestrictions;
+        public static double getAbsoluteError(double e, int numOfRestrictions) => Math.Sqrt(z(0, 0)) * e / numOfRestrictions;
+
+        public static double getRelativeError(double e, int numOfRestrictions) => z(0, 0) * e / numOfRestrictions;
     
         // Generar restricciones
-        public static Restriction[] generate(Circle[] circles, double error){
-            double absoluteError = Restriction.getAbsoluteError(error, circles.Length);
+        public static Restriction[] generate(Circle[] circles, double e, bool rel){
+            double error = rel ? Restriction.getRelativeError(e, circles.Length) : Restriction.getAbsoluteError(e, circles.Length);
 
+            //double error = e;
+            Console.WriteLine(error);
+            
             Restriction[] restrictions = new Restriction[circles.Length];
             for (int i = 0; i < restrictions.Length; ++i)
-                restrictions[i] = new Restriction(circles[i], absoluteError);
+                restrictions[i] = new Restriction(circles[i], error);
 
             return restrictions;
         }

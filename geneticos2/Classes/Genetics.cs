@@ -16,6 +16,7 @@ namespace geneticos2.Classes
         public static int getMj(double a, double b, int n)
         {
             double r = (Math.Log(b - a) + Math.Log(10) * n) / Math.Log(2);
+
             int integerPart = Convert.ToInt32(r);
 
             if (r - integerPart <= 0)
@@ -34,7 +35,7 @@ namespace geneticos2.Classes
                 vmx = (vmx << 1) | 1;
             }
 
-            return (long)(b - a) * val / vmx + a;
+            return (long)((b - a) * val) / (double)vmx + a;
         }
 
         // Mapea el valor de una variable de más de 63 bits
@@ -82,7 +83,7 @@ namespace geneticos2.Classes
         }
 
         // Evaluamos si un hijo es valido o no
-        static bool evaluate(char[] chromosome, Limit[] limits, Restriction[] restrictions)
+        public static bool evaluate(char[] chromosome, Limit[] limits, Restriction[] restrictions)
         {
             var mappedValues = getMappedValues(chromosome, limits);
 
@@ -132,15 +133,20 @@ namespace geneticos2.Classes
 
         public static char[] mutation(char[] chromosome)
         {
-            int index = random.Next(0, chromosome.Length);
-            if (chromosome[index] == '1')
-            {
-                chromosome[index] = '0';
-                return chromosome;
-            }
-            chromosome[index] = '1';
 
-            return chromosome;
+            char[] answer = new char[chromosome.Length];
+            for (int i = 0; i < answer.Length; ++i)
+                answer[i] = chromosome[i];
+
+            int index = random.Next(0, answer.Length);
+            if (answer[index] == '1')
+            {
+                answer[index] = '0';
+                return answer;
+            }
+            answer[index] = '1';
+
+            return answer;
         }
 
         public static char[] crossover(char[] parent1, char[] parent2)
@@ -163,8 +169,24 @@ namespace geneticos2.Classes
 
         }
 
+        public static void showP(char[][] poblation, Limit[] limits, Restriction[] restrictions)
+        {
+            for (int i = 0; i < poblation.Length; ++i)
+                Console.WriteLine("{0}. {1} : {2}", i, showC(poblation[i]), evaluate(poblation[i], limits, restrictions));
+        }
+
+        public static string showC(char[] c)
+        {
+;            string r = "";
+
+            for (int i = 0; i < c.Length; ++i)
+                r += c[i];
+
+            return r;
+        }
+
         // Metodo maestro - Geneticos chido
-        public static (int, double, double, double)[] calculate(Circle[] circles, double error, int n, int rounds, int size)
+        public static (int, double, double, double)[] calculate(Circle[] circles, int n, int rounds, int size, double e, bool rel)
         {
             err = 0;
 
@@ -172,12 +194,16 @@ namespace geneticos2.Classes
 
             Restriction.initializeZ(circles);
 
-            var restrictions = Restriction.generate(circles, error);
+            var restrictions = Restriction.generate(circles, e, rel);
             var limits = Limit.generate(restrictions, n);
             var poblation = Genetics.generatePoblation(limits, restrictions, size);
 
+            
+
             for (int i = 0; i < rounds && i < 100; ++i){
                 var best = round(poblation, limits, restrictions);
+
+                
 
                 int j;
                 for (j = 0; j < best.Length; ++j)
@@ -208,9 +234,13 @@ namespace geneticos2.Classes
 
                 answer[i] = (i, values[0], values[1], Restriction.z(values[0], values[1]));
 
+                Console.WriteLine("Ronda");
                 Console.WriteLine(answer[i].Item1);
+                Console.Write("x: ");
                 Console.WriteLine(answer[i].Item2);
+                Console.Write("y: ");
                 Console.WriteLine(answer[i].Item3);
+                Console.Write("z: ");
                 Console.WriteLine(answer[i].Item4);
 
             }
@@ -252,6 +282,8 @@ namespace geneticos2.Classes
                     }
                 }
             }
+
+            Console.WriteLine("-----");
 
             return best.getOnlyValues();
         }
